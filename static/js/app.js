@@ -3,31 +3,76 @@ function buildMetadata(sample) {
   // @TODO: Complete the following function that builds the metadata panel
 
   // Use `d3.json` to fetch the metadata for a sample
-    var metaRoute = "/metadata/" + sample;
+    var metaRoute = `/metadata/${sample}`;
     // Use d3 to select the panel with id of `#sample-metadata`
 
     var metaData = d3.select("#sample-metadata");
     
 
     // Use `.html("") to clear any existing metadata
+    metaData.html("");
 
     // Use `Object.entries` to add each key and value pair to the panel
     // Hint: Inside the loop, you will need to use d3 to append new
     // tags for each key-value in the metadata.
+    d3.json(metaRoute).then((data)=>{
+      Object.entries(data).forEach(([key, value]) => {
+        var row = metaData.append("p");
+        row.text(`${key}: ${value}`);
+      })
+    })
 
     // BONUS: Build the Gauge Chart
     // buildGauge(data.WFREQ);
 }
 
 function buildCharts(sample) {
-
+  
   // @TODO: Use `d3.json` to fetch the sample data for the plots
+  var sampleRoute = `/samples/${sample}`;
+  d3.json(chartsRoute).then((data)=> {
+  // @TODO: Build a Bubble Chart using the sample data
+    var firstTrace = {
+      x: data.otu_ids,
+      y: data.sample_values,
+      mode:'markers',
+      text:data.otu_labels,
+      marker: {
+        color: data.otu_ids,
+        size: data.sample_values,
+        
+      }
+    };
 
-    // @TODO: Build a Bubble Chart using the sample data
+    var firstTrace = [firstTrace];
+    var layout = {
+      xaxis: {title: "OTU ID"},
+      showlegend: false,
+      height: 600,
+      width: 1500
+    };
+  })
+  
+    Plotly.newPlot("bubble", firstTrace, layout);
 
     // @TODO: Build a Pie Chart
     // HINT: You will need to use slice() to grab the top 10 sample_values,
     // otu_ids, and labels (10 each).
+    d3.json(sampleRoute).then((data)=>{
+      var chartValues = data.sample_values.slice(0,10);
+      var chartLabels = data.otu_ids.slice(0,10);
+      var chartHover = data.otu_labels.slice(0,10);
+
+      var data = [{
+        values: chartValues,
+        labels: chartValues,
+        hovertext: chartHover,
+        type: "pie"
+      }];
+
+      Plotly.newPlot("pie", data);
+
+    })
 }
 
 function init() {
